@@ -1,6 +1,9 @@
 const wrapperEl = document.querySelector('.wrapper')
 const loadingEl = document.querySelector('.loading__wrapper')
 const seeMoreBTn = document.querySelector('.see_more')
+const categoryEl = document.querySelector('.category')
+const categoryItemElEl = document.querySelector('.category__loading__wrapper')
+
 const BASE_URL = 'https://dummyjson.com'
 
 async function fetchData(endpoint) {
@@ -13,12 +16,14 @@ async function fetchData(endpoint) {
 	} finally {
 		loadingEl.style.display = 'none'
 		seeMoreBTn.removeAttribute('disabled')
+		seeMoreBTn.textContent = 'See more'
 	}
 }
 
 window.addEventListener('load', () => {
 	createLoading(8)
 	fetchData('/products?limit=8')
+	fetchCategory('/products/category-list')
 })
 
 function createLoading(n) {
@@ -79,3 +84,34 @@ seeMoreBTn.addEventListener('click', () => {
 	offset++
 	fetchData(`/products?limit=8&skip=${(offset - 1) * 8}`)
 })
+
+async function fetchCategory(endpoint) {
+	const response = await fetch(`${BASE_URL}${endpoint}`)
+	response
+		.json()
+		.then(res => {
+			createCategory(res)
+		})
+		.catch()
+		.finally(() => {
+			categoryItemElEl.style.display = 'none'
+		})
+}
+
+function createCategory(data) {
+	data.forEach(category => {
+		const categoryItemEl = document.createElement('div')
+		categoryItemEl.className = 'category__item'
+		categoryItemEl.dataset.category = `/products/category/${category}`
+		categoryItemEl.innerHTML = `
+			<img src="./assets/Category-CellPhonphonee.svg" alt="">
+			<span>${category}</span>
+		`
+		categoryEl.appendChild(categoryItemEl)
+		categoryItemEl.addEventListener('click', e => {
+			const endpoint = e.currentTarget.dataset.category
+			wrapperEl.innerHTML = ''
+			fetchData(`${endpoint}?limit=8`)
+		})
+	})
+}
